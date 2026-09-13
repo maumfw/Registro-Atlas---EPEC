@@ -202,7 +202,7 @@
     // URL DE TU APPS SCRIPT
     const API_URL = "https://script.google.com/macros/s/AKfycbzTqudA9Am2t5Ouq7T5o4Fksy5A_Yq_Wdb_7Vl_pLDaE68UJXX8kzRvS9nlIHLUTPwZcg/exec";
     
-    // PIN PARA INGRESO AL SISTEMA (PUEDES CAMBIARLO AQUÍ)
+    // PIN PARA INGRESO AL SISTEMA
     const ACCESS_PIN = "2026"; 
 
     let currentUser = "";
@@ -211,9 +211,7 @@
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
       
-      // SI SE INGRESA MEDIANTE QR PARA VER PDF
       if (urlParams.get('action') === 'pdf') {
-        // Bloquear el botón Atrás en el navegador
         history.pushState(null, null, location.href);
         window.onpopstate = function () {
           history.go(1);
@@ -230,7 +228,6 @@
         return;
       }
 
-      // Carga normal para integrantes autorizados
       const savedUser = localStorage.getItem("power_epec_user");
       const savedPin = localStorage.getItem("power_epec_pin");
       if (savedUser && savedPin === ACCESS_PIN) {
@@ -359,7 +356,8 @@
       if (!tbody) return;
       tbody.innerHTML = "";
 
-      records.forEach((row) => {
+      // Muestra el último registro introducido hasta arriba
+      records.slice().reverse().forEach((row) => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-slate-50";
         tr.innerHTML = `
@@ -398,7 +396,6 @@
       });
     }
 
-    // RENDIR PDF REEMPLAZANDO TODO EL HTML Y DESACTIVANDO NAVEGACIÓN ATRÁS
     function renderPDFStandalone() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
