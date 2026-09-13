@@ -6,7 +6,7 @@
   <title>Registro Power EPEC, Atlas Gens</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- Librerías para generar PDF en el cliente sin pasar por Google -->
+  <!-- Librerías para generar el PDF de forma anónima en la PC/Celular del usuario -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <style>
@@ -186,7 +186,7 @@
   <div id="qr-modal" class="hidden fixed inset-0 modal-bg flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
       <h3 class="text-xl font-bold text-slate-800">Código QR del PDF</h3>
-      <p class="text-xs text-slate-500">Al escanear este QR se generará y descargará automáticamente el PDF.</p>
+      <p class="text-xs text-slate-500">Escanea para descargar automáticamente el PDF del reporte.</p>
       <div id="qrcode" class="flex justify-center p-4 bg-slate-50 rounded-lg border"></div>
       <button onclick="closeQRModal()" class="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 rounded-lg text-sm">
         Cerrar
@@ -196,20 +196,20 @@
 
   <script>
     // REEMPLAZAR CON TU URL DE DESPLIEGUE DE APPS SCRIPT
-    const API_URL = "https://script.google.com/macros/s/AKfycbxLyVf8rvDXOBbOBb5h-kn3iprGaJrSZYXDnTYA8rCLaD-8GnR2a_F-PfF0NvC31Fdm/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzBUh0E2tsbXcE7AXiPJ7ldvpXRmazIQTuGzPPUByF6xmmNRd7F4EEQiQiOBmz_OEXtWQ/exec";
 
     let currentUser = "";
     let records = [];
 
     window.onload = function() {
-      // Verificar si viene una orden del QR para descargar PDF directamente
+      // Si fue abierto escaneando el QR, descarga el PDF directamente
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('action') === 'pdf') {
         fetch(`${API_URL}?action=read`)
           .then(res => res.json())
           .then(data => {
             records = data;
-            generateClientPDF(true); // Genera y guarda automáticamente
+            generateClientPDF(true);
           });
         return;
       }
@@ -370,7 +370,7 @@
       });
     }
 
-    // GENERADOR DIRECTO DE PDF CLIENTE (SIN CUENTA DE GOOGLE)
+    // GENERACIÓN ANÓNIMA Y DIRECTA DEL PDF
     function generateClientPDF(autoSave = false) {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -444,7 +444,7 @@
       const qrContainer = document.getElementById("qrcode");
       qrContainer.innerHTML = "";
       
-      // El QR apunta a tu misma app en GitHub Pages con parámetro para auto-descarga del PDF
+      // Apunta a la página de GitHub Pages de tu app directamente
       const currentUrl = window.location.href.split('?')[0];
       const pdfTargetUrl = `${currentUrl}?action=pdf`;
 
