@@ -4,21 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registro Power EPEC, Atlas Gens</title>
-  <!-- Tailwind CSS CDN para diseño moderno -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Librería QRCode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- Librería SheetJS para exportación local a Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    .modal-bg { background-color: rgba(0, 0, 0, 0.5); }
+    .modal-bg { background-color: rgba(0, 0, 0, 0.6); }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
 
   <div class="max-w-5xl mx-auto p-4 md:p-6">
     
-    <!-- PANTALLA 1: MENÚ INICIAL Y SELECCIÓN DE USUARIO -->
+    <!-- PANTALLA 1: INICIO -->
     <div id="screen-welcome" class="bg-white rounded-xl shadow-lg p-8 text-center max-w-xl mx-auto mt-10">
       <h1 class="text-3xl font-extrabold text-blue-900 mb-6">Registro Power EPEC, Atlas Gens</h1>
       
@@ -26,7 +23,6 @@
         <label class="block text-sm font-semibold text-slate-700 mb-2">Seleccione su Nombre de Usuario:</label>
         <select id="user-select" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-slate-50">
           <option value="">-- Seleccione un usuario --</option>
-          <!-- Lista ordenada alfabéticamente -->
           <option value="Adrián">Adrián</option>
           <option value="Ángel">Ángel</option>
           <option value="Armando">Armando</option>
@@ -48,20 +44,22 @@
         Ingresar al Sistema
       </button>
 
-      <div class="border-t pt-6 flex flex-col sm:flex-row gap-4 justify-center">
-        <button onclick="openPDFModal()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2">
-          📄 Ver Archivo PDF / QR
+      <div class="border-t pt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <button onclick="openPdfDirectly()" class="bg-emerald-800 hover:bg-emerald-900 text-white px-3 py-2.5 rounded-lg font-semibold text-sm shadow">
+          👁️ Ver archivo PDF
         </button>
-        <button onclick="downloadExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2">
-          📊 Descargar Excel
+        <button onclick="downloadExcel()" class="bg-emerald-800 hover:bg-emerald-900 text-white px-3 py-2.5 rounded-lg font-semibold text-sm shadow">
+          📊 Descargar Excel (.xlsx)
+        </button>
+        <button onclick="openQRModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2.5 rounded-lg font-semibold text-sm shadow">
+          📱 Generar QR PDF
         </button>
       </div>
     </div>
 
-    <!-- PANTALLA 2: PANEL DE CAPTURA Y TABLA -->
+    <!-- PANTALLA 2: PANEL DE CONTROL -->
     <div id="screen-main" class="hidden space-y-6">
       
-      <!-- Barra Superior -->
       <div class="bg-white rounded-xl shadow p-4 flex justify-between items-center">
         <div>
           <span class="text-xs text-slate-500 uppercase font-bold block">Usuario Activo:</span>
@@ -72,9 +70,8 @@
         </button>
       </div>
 
-      <!-- Formulario de Entrada -->
+      <!-- Formulario -->
       <div class="bg-white rounded-xl shadow-lg p-6 relative">
-        <!-- Indicador 380V dinámico -->
         <div id="alert-380v" class="hidden absolute top-4 right-4 text-red-600 font-extrabold border-2 border-red-600 px-3 py-1 rounded-md animate-pulse">
           SISTEMA 380V
         </div>
@@ -85,8 +82,7 @@
           <div>
             <label class="block text-sm font-semibold text-slate-700 mb-1">Seleccionar Ubicación / Equipo:</label>
             <select id="location-select" onchange="checkVoltage()" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-              <option value="">-- Seleccionar (Orden Alfabético) --</option>
-              <!-- Opciones ordenadas alfabéticamente -->
+              <option value="">-- Seleccionar --</option>
               <option value="B1">B1</option>
               <option value="B8">B8</option>
               <option value="BAY5&6">BAY5&6</option>
@@ -115,27 +111,10 @@
         </button>
       </div>
 
-      <!-- Sección Calculadora de Selección -->
-      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <h3 class="font-bold text-blue-900 mb-2 flex items-center gap-2">
-          🧮 Calculadora de Sumatoria
-          <span class="text-xs font-normal text-blue-700">(Selecciona filas en la tabla mediante las casillas de verificación)</span>
-        </h3>
-        <div class="grid grid-cols-3 gap-2 text-center bg-white p-3 rounded-lg border">
-          <div>
-            <span class="block text-xs text-slate-500 font-bold">Total Amperes</span>
-            <span id="calc-a" class="text-lg font-extrabold text-blue-600">0.000 (A)</span>
-          </div>
-          <div>
-            <span class="block text-xs text-slate-500 font-bold">Total kW</span>
-            <span id="calc-kw" class="text-lg font-extrabold text-emerald-600">0.000 kW</span>
-          </div>
-          <div>
-            <span class="block text-xs text-slate-500 font-bold">Total MW</span>
-            <span id="calc-mw" class="text-lg font-extrabold text-purple-600">0.000 MW</span>
-          </div>
-        </div>
-      </div>
+      <!-- Botón para abrir Modal de Calculadora -->
+      <button onclick="openCalcModal()" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-3 rounded-lg shadow-md flex items-center justify-center gap-2">
+        🧮 Calculadora de Sumatoria
+      </button>
 
       <!-- Tabla de Registros -->
       <div class="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -148,7 +127,6 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-100 text-slate-600 text-xs font-bold uppercase border-b">
-                <th class="p-3 text-center"><input type="checkbox" onchange="toggleSelectAll(this)"></th>
                 <th class="p-3">Fecha</th>
                 <th class="p-3">Hora</th>
                 <th class="p-3">Ubicación</th>
@@ -160,7 +138,6 @@
               </tr>
             </thead>
             <tbody id="table-body" class="text-sm divide-y">
-              <!-- Carga Dinámica -->
             </tbody>
           </table>
         </div>
@@ -170,35 +147,58 @@
 
   </div>
 
-  <!-- MODAL: PDF & QR -->
-  <div id="pdf-modal" class="hidden fixed inset-0 modal-bg flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-center space-y-4">
-      <h3 class="text-xl font-bold text-slate-800">Visualizar PDF / Compartir QR</h3>
-      <p class="text-xs text-slate-500">Escanea el código QR desde cualquier dispositivo para ver el documento PDF generado desde la nube.</p>
+  <!-- MODAL: CALCULADORA ESTILO DISEÑO -->
+  <div id="calc-modal" class="hidden fixed inset-0 modal-bg flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 max-h-[90vh] flex flex-col">
+      <h3 class="text-xl font-bold text-blue-950">Calculadora de Mediciones</h3>
+      <p class="text-xs text-slate-500">Selecciona las filas tomadas para calcular la sumatoria:</p>
       
-      <div id="qrcode" class="flex justify-center p-4 bg-slate-50 rounded-lg border"></div>
-
-      <div class="flex gap-2">
-        <button onclick="openPdfDirectly()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg text-sm">
-          Abrir PDF Directo
-        </button>
-        <button onclick="closePDFModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-lg text-sm">
-          Cerrar
-        </button>
+      <!-- Lista de elementos seleccionables -->
+      <div id="calc-items-list" class="overflow-y-auto space-y-2 flex-1 pr-1 max-h-60 border rounded-lg p-2 bg-slate-50">
       </div>
+
+      <!-- Resultados -->
+      <div class="bg-slate-50 border rounded-xl p-4 space-y-2">
+        <h4 class="font-bold text-slate-800 text-sm">Resultados de la Sumatoria:</h4>
+        <div class="space-y-1 text-sm font-semibold">
+          <div class="flex items-center gap-2">
+            <span>⚡ Total Corriente:</span>
+            <span id="calc-total-a" class="text-emerald-600 font-bold">0.00 A</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span>🔌 Total Potencia Activa:</span>
+            <span id="calc-total-kw" class="text-emerald-600 font-bold">0.00 kW</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span>🏭 Total Potencia:</span>
+            <span id="calc-total-mw" class="text-emerald-600 font-bold">0.0000 MW</span>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="closeCalcModal()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-xl transition-all">
+        Cerrar
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: QR -->
+  <div id="qr-modal" class="hidden fixed inset-0 modal-bg flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
+      <h3 class="text-xl font-bold text-slate-800">Código QR del PDF</h3>
+      <div id="qrcode" class="flex justify-center p-4 bg-slate-50 rounded-lg border"></div>
+      <button onclick="closeQRModal()" class="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 rounded-lg text-sm">
+        Cerrar
+      </button>
     </div>
   </div>
 
   <script>
-    // ========================================================
-    // REEMPLAZA ESTA CONSTANTE CON LA URL DE TU APPS SCRIPT
-    // ========================================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbwTvM_5Aza33d2o9L3HZQpP2bNKyCypMC2e39gXidLBpEtCYapGTIm1VPuuzwTJXmJ_0w/exec";
+    const API_URL = "https://script.google.com/macros/s/TU_SCRIPT_ID_AQUI/exec";
 
     let currentUser = "";
     let records = [];
 
-    // Inicialización
     window.onload = function() {
       const savedUser = localStorage.getItem("power_epec_user");
       if (savedUser) {
@@ -240,6 +240,27 @@
       }
     }
 
+    // Formateador limpio de fechas y horas
+    function formatCleanDate(str) {
+      if (!str) return "";
+      if (str.includes("T")) {
+        const d = new Date(str);
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${m}/${day}/${d.getFullYear()}`;
+      }
+      return str.replace(/'/g, "");
+    }
+
+    function formatCleanTime(str) {
+      if (!str) return "";
+      if (str.includes("T")) {
+        const d = new Date(str);
+        return d.toLocaleTimeString('en-US', { hour12: true });
+      }
+      return str.replace(/'/g, "");
+    }
+
     function saveMeasurement() {
       const option = document.getElementById("location-select").value;
       const ampsVal = document.getElementById("amperes-input").value;
@@ -252,20 +273,15 @@
       const amperes = parseFloat(parseFloat(ampsVal).toFixed(3));
       let factorVolts = (option === "MST1" || option === "MST2") ? 0.38 : 0.48;
 
-      // Cálculo kW = (Amperes)(Factor)(1.73)
       const kw = parseFloat((amperes * factorVolts * 1.73).toFixed(3));
-      // Cálculo MW = kW / 1000
       const mw = parseFloat((kw / 1000).toFixed(3));
 
       const now = new Date();
-      // Formato Fecha MM/DD/AAAA
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
       const year = now.getFullYear();
       const fechaFormatted = `${month}/${day}/${year}`;
-
-      // Formato Hora HH:MM:SS
-      const horaFormatted = now.toTimeString().split(' ')[0];
+      const horaFormatted = now.toLocaleTimeString('en-US', { hour12: true });
 
       const payload = {
         fecha: fechaFormatted,
@@ -277,14 +293,12 @@
         usuario: currentUser
       };
 
-      // Guardar remoto
       fetch(API_URL, {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "create", payload: payload })
       }).then(() => {
-        // Limpiar campos y refrescar
         document.getElementById("amperes-input").value = "";
         setTimeout(loadDataFromCloud, 1000);
       });
@@ -307,9 +321,8 @@
         const tr = document.createElement("tr");
         tr.className = "hover:bg-slate-50";
         tr.innerHTML = `
-          <td class="p-3 text-center"><input type="checkbox" class="row-checkbox" data-id="${row[0]}" onchange="calculateSum()"></td>
-          <td class="p-3">${row[1]}</td>
-          <td class="p-3">${row[2]}</td>
+          <td class="p-3">${formatCleanDate(row[1])}</td>
+          <td class="p-3">${formatCleanTime(row[2])}</td>
           <td class="p-3 font-semibold text-blue-900">${row[3]}</td>
           <td class="p-3">${parseFloat(row[4]).toFixed(3)} A</td>
           <td class="p-3 font-medium">${parseFloat(row[5]).toFixed(3)} kW</td>
@@ -321,8 +334,6 @@
         `;
         tbody.appendChild(tr);
       });
-
-      calculateSum();
     }
 
     function requestDelete(id) {
@@ -345,39 +356,58 @@
       });
     }
 
-    // CALCULADORA DE SELECCIONES
-    function toggleSelectAll(master) {
-      document.querySelectorAll(".row-checkbox").forEach(cb => cb.checked = master.checked);
-      calculateSum();
+    // MODAL CALCULADORA
+    function openCalcModal() {
+      const listContainer = document.getElementById("calc-items-list");
+      listContainer.innerHTML = "";
+
+      records.forEach((row) => {
+        const itemDiv = document.createElement("label");
+        itemDiv.className = "flex items-start gap-3 p-2.5 bg-white rounded-lg border shadow-sm cursor-pointer hover:bg-blue-50 transition-all";
+        itemDiv.innerHTML = `
+          <input type="checkbox" class="calc-checkbox w-5 h-5 rounded text-blue-600 mt-1" data-id="${row[0]}" onchange="recalculateModalSum()">
+          <div class="text-xs">
+            <div class="font-bold text-slate-800">${formatCleanDate(row[1])} ${formatCleanTime(row[2])} - ${row[3]} (${row[7]})</div>
+            <div class="text-slate-500 font-medium">${row[4]} A | ${row[5]} kW | ${row[6]} MW</div>
+          </div>
+        `;
+        listContainer.appendChild(itemDiv);
+      });
+
+      recalculateModalSum();
+      document.getElementById("calc-modal").classList.remove("hidden");
     }
 
-    function calculateSum() {
-      let sumA = 0, sumKW = 0, sumMW = 0;
-      const checkboxes = document.querySelectorAll(".row-checkbox:checked");
+    function closeCalcModal() {
+      document.getElementById("calc-modal").classList.add("hidden");
+    }
+
+    function recalculateModalSum() {
+      let totalA = 0, totalKW = 0, totalMW = 0;
+      const checkboxes = document.querySelectorAll(".calc-checkbox:checked");
 
       checkboxes.forEach(cb => {
         const id = cb.getAttribute("data-id");
         const rowData = records.find(r => r[0].toString() === id.toString());
         if (rowData) {
-          sumA += parseFloat(rowData[4]) || 0;
-          sumKW += parseFloat(rowData[5]) || 0;
-          sumMW += parseFloat(rowData[6]) || 0;
+          totalA += parseFloat(rowData[4]) || 0;
+          totalKW += parseFloat(rowData[5]) || 0;
+          totalMW += parseFloat(rowData[6]) || 0;
         }
       });
 
-      document.getElementById("calc-a").innerText = sumA.toFixed(3) + " (A)";
-      document.getElementById("calc-kw").innerText = sumKW.toFixed(3) + " kW";
-      document.getElementById("calc-mw").innerText = sumMW.toFixed(3) + " MW";
+      document.getElementById("calc-total-a").innerText = totalA.toFixed(2) + " A";
+      document.getElementById("calc-total-kw").innerText = totalKW.toFixed(2) + " kW";
+      document.getElementById("calc-total-mw").innerText = totalMW.toFixed(4) + " MW";
     }
 
-    // EXPORTAR A EXCEL LOCAL
     function downloadExcel() {
       if (records.length === 0) {
         alert("No hay registros para exportar.");
         return;
       }
       const dataToExport = records.map(r => ({
-        "ID": r[0], "Fecha": r[1], "Hora": r[2], "Ubicación": r[3],
+        "ID": r[0], "Fecha": formatCleanDate(r[1]), "Hora": formatCleanTime(r[2]), "Ubicación": r[3],
         "Amperes (A)": r[4], "kW": r[5], "MW": r[6], "Usuario": r[7]
       }));
       const ws = XLSX.utils.json_to_sheet(dataToExport);
@@ -386,27 +416,19 @@
       XLSX.writeFile(wb, "Registro_Power_EPEC.xlsx");
     }
 
-    // GENERACIÓN DE QR Y MODAL PDF
-    function openPDFModal() {
-      document.getElementById("pdf-modal").classList.remove("hidden");
-      const qrContainer = document.getElementById("qrcode");
-      qrContainer.innerHTML = "";
-      
-      const pdfUrl = `${API_URL}?action=pdf`;
-
-      new QRCode(qrContainer, {
-        text: pdfUrl,
-        width: 180,
-        height: 180
-      });
-    }
-
-    function closePDFModal() {
-      document.getElementById("pdf-modal").classList.add("hidden");
-    }
-
     function openPdfDirectly() {
       window.open(`${API_URL}?action=pdf`, "_blank");
+    }
+
+    function openQRModal() {
+      document.getElementById("qr-modal").classList.remove("hidden");
+      const qrContainer = document.getElementById("qrcode");
+      qrContainer.innerHTML = "";
+      new QRCode(qrContainer, { text: `${API_URL}?action=pdf`, width: 180, height: 180 });
+    }
+
+    function closeQRModal() {
+      document.getElementById("qr-modal").classList.add("hidden");
     }
   </script>
 </body>
