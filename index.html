@@ -70,7 +70,7 @@
         </button>
       </div>
 
-      <!-- Formulario -->
+      <!-- Formulario de Entrada -->
       <div class="bg-white rounded-xl shadow-lg p-6 relative">
         <div id="alert-380v" class="hidden absolute top-4 right-4 text-red-600 font-extrabold border-2 border-red-600 px-3 py-1 rounded-md animate-pulse">
           SISTEMA 380V
@@ -111,16 +111,16 @@
         </button>
       </div>
 
-      <!-- Botón para abrir Modal de Calculadora -->
+      <!-- Botón de Calculadora Modal -->
       <button onclick="openCalcModal()" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-3 rounded-lg shadow-md flex items-center justify-center gap-2">
         🧮 Calculadora de Sumatoria
       </button>
 
-      <!-- Tabla de Registros -->
+      <!-- Tabla de Histórico -->
       <div class="bg-white rounded-xl shadow-lg overflow-hidden">
         <div class="p-4 border-b flex justify-between items-center">
           <h3 class="font-bold text-slate-800 text-lg">Histórico de Registros</h3>
-          <button onclick="loadDataFromCloud()" class="text-sm text-blue-600 hover:underline">🔄 Sincronizar</button>
+          <button onclick="loadDataFromCloud()" class="text-sm text-blue-600 hover:underline font-semibold">🔄 Sincronizar</button>
         </div>
         
         <div class="overflow-x-auto">
@@ -147,17 +147,15 @@
 
   </div>
 
-  <!-- MODAL: CALCULADORA ESTILO DISEÑO -->
+  <!-- MODAL: CALCULADORA DE MEDICIONES -->
   <div id="calc-modal" class="hidden fixed inset-0 modal-bg flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 max-h-[90vh] flex flex-col">
       <h3 class="text-xl font-bold text-blue-950">Calculadora de Mediciones</h3>
       <p class="text-xs text-slate-500">Selecciona las filas tomadas para calcular la sumatoria:</p>
       
-      <!-- Lista de elementos seleccionables -->
       <div id="calc-items-list" class="overflow-y-auto space-y-2 flex-1 pr-1 max-h-60 border rounded-lg p-2 bg-slate-50">
       </div>
 
-      <!-- Resultados -->
       <div class="bg-slate-50 border rounded-xl p-4 space-y-2">
         <h4 class="font-bold text-slate-800 text-sm">Resultados de la Sumatoria:</h4>
         <div class="space-y-1 text-sm font-semibold">
@@ -182,7 +180,7 @@
     </div>
   </div>
 
-  <!-- MODAL: QR -->
+  <!-- MODAL: CÓDIGO QR -->
   <div id="qr-modal" class="hidden fixed inset-0 modal-bg flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
       <h3 class="text-xl font-bold text-slate-800">Código QR del PDF</h3>
@@ -194,7 +192,8 @@
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/TU_SCRIPT_ID_AQUI/exec";
+    // COLOCA AQUÍ TU NUEVA URL DE DESPLIEGUE DE APPS SCRIPT
+    const API_URL = "https://script.google.com/macros/s/AKfycbyUL-hskGqrcMu8uiz0ghpNBVmJsEd3nKR5hRNB2JQ1Xh4mAus4YbovptaDJOf3BccdYg/exec";
 
     let currentUser = "";
     let records = [];
@@ -240,7 +239,6 @@
       }
     }
 
-    // Formateador limpio de fechas y horas
     function formatCleanDate(str) {
       if (!str) return "";
       if (str.includes("T")) {
@@ -356,7 +354,6 @@
       });
     }
 
-    // MODAL CALCULADORA
     function openCalcModal() {
       const listContainer = document.getElementById("calc-items-list");
       listContainer.innerHTML = "";
