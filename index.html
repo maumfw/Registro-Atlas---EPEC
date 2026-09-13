@@ -6,7 +6,7 @@
   <title>Registro Power EPEC, Atlas Gens</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- Librerías para generar el PDF de forma anónima en la PC/Celular del usuario -->
+  <!-- Librerías para generación de PDF sin pasar por Google -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <style>
@@ -186,7 +186,7 @@
   <div id="qr-modal" class="hidden fixed inset-0 modal-bg flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
       <h3 class="text-xl font-bold text-slate-800">Código QR del PDF</h3>
-      <p class="text-xs text-slate-500">Escanea para descargar automáticamente el PDF del reporte.</p>
+      <p class="text-xs text-slate-500">Escanea para visualizar directamente el PDF del reporte.</p>
       <div id="qrcode" class="flex justify-center p-4 bg-slate-50 rounded-lg border"></div>
       <button onclick="closeQRModal()" class="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 rounded-lg text-sm">
         Cerrar
@@ -196,24 +196,32 @@
 
   <script>
     // REEMPLAZAR CON TU URL DE DESPLIEGUE DE APPS SCRIPT
-    const API_URL = "https://script.google.com/macros/s/AKfycbzBUh0E2tsbXcE7AXiPJ7ldvpXRmazIQTuGzPPUByF6xmmNRd7F4EEQiQiOBmz_OEXtWQ/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzTqudA9Am2t5Ouq7T5o4Fksy5A_Yq_Wdb_7Vl_pLDaE68UJXX8kzRvS9nlIHLUTPwZcg/exec";
 
     let currentUser = "";
     let records = [];
 
     window.onload = function() {
-      // Si fue abierto escaneando el QR, descarga el PDF directamente
       const urlParams = new URLSearchParams(window.location.search);
+      
+      // SI ACCEDEN ESCANEANDO EL CÓDIGO QR:
       if (urlParams.get('action') === 'pdf') {
+        // Borrar el parámetro de la URL para que no quede registrado en el historial
+        history.replaceState(null, "", window.location.pathname);
+
+        // Ocultar pantalla inicial mientras carga
+        document.getElementById("screen-welcome").classList.add("hidden");
+
         fetch(`${API_URL}?action=read`)
           .then(res => res.json())
           .then(data => {
             records = data;
-            generateClientPDF(true);
+            renderPDFStandalone();
           });
         return;
       }
 
+      // Carga normal del sistema para tu departamento
       const savedUser = localStorage.getItem("power_epec_user");
       if (savedUser) {
         currentUser = savedUser;
@@ -370,8 +378,8 @@
       });
     }
 
-    // GENERACIÓN ANÓNIMA Y DIRECTA DEL PDF
-    function generateClientPDF(autoSave = false) {
+    // VISTA EXCLUSIVA Y AISLADA PARA USUARIOS EXTERNOS (VÍA QR)
+    function renderPDFStandalone() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
@@ -397,11 +405,54 @@
         styles: { fontSize: 9 }
       });
 
-      if (autoSave) {
-        doc.save("Registro_Power_EPEC.pdf");
-      } else {
-        window.open(doc.output('bloburl'), '_blank');
-      }
+      const pdfDataUri = doc.output('datauristring');
+      
+      // Sobrescribir todo el sitio Web e inyectar únicamente la pantalla del PDF
+      document.open();
+      document.write(`
+        <!DOCTYPE html>
+        <html lang="es">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Reporte PDF - Registro Power EPEC</title>
+          </head>
+          <body style="margin:0; padding:0; overflow:hidden; background-color:#525659;">
+            <iframe width="100%" height="100%" style="border:none; position:fixed; top:0; left:0; bottom:0; right:0;" src="${pdfDataUri}"></iframe>
+          </body>
+        </html>
+      `);
+      document.close();
+    }
+
+    // GENERACIÓN NORMAL DENTRO DE LA APP
+    function generateClientPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(16);
+      doc.setTextColor(15, 23, 42);
+      doc.text("Registro Power EPEC, Atlas Gens", 14, 20);
+
+      const tableData = records.map(r => [
+        formatCleanDate(r[1]),
+        formatCleanTime(r[2]),
+        r[3],
+        `${r[4]} A`,
+        `${r[5]} kW`,
+        `${r[6]} MW`,
+        r[7]
+      ]);
+
+      doc.autoTable({
+        startY: 28,
+        head: [['Fecha', 'Hora', 'Equipo', 'Amperes', 'kW', 'MW', 'Usuario']],
+        body: tableData,
+        headStyles: { fillColor: [29, 78, 216] },
+        styles: { fontSize: 9 }
+      });
+
+      window.open(doc.output('bloburl'), '_blank');
     }
 
     function exportPDFDirectly() {
@@ -444,7 +495,6 @@
       const qrContainer = document.getElementById("qrcode");
       qrContainer.innerHTML = "";
       
-      // Apunta a la página de GitHub Pages de tu app directamente
       const currentUrl = window.location.href.split('?')[0];
       const pdfTargetUrl = `${currentUrl}?action=pdf`;
 
