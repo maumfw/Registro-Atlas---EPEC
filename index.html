@@ -192,8 +192,8 @@
   </div>
 
   <script>
-    // COLOCA AQUÍ TU NUEVA URL DE DESPLIEGUE DE APPS SCRIPT
-    const API_URL = "https://script.google.com/macros/s/AKfycbyUL-hskGqrcMu8uiz0ghpNBVmJsEd3nKR5hRNB2JQ1Xh4mAus4YbovptaDJOf3BccdYg/exec";
+    // LÍNEA 196: EDITAR CON LA URL DE DESPLIEGUE DE APPS SCRIPT
+    const API_URL = "https://script.google.com/macros/s/TU_SCRIPT_ID_AQUI/exec";
 
     let currentUser = "";
     let records = [];
@@ -414,7 +414,20 @@
     }
 
     function openPdfDirectly() {
-      window.open(`${API_URL}?action=pdf`, "_blank");
+      fetch(`${API_URL}?action=pdf`)
+        .then(res => res.text())
+        .then(base64Data => {
+          const byteCharacters = atob(base64Data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: 'application/pdf' });
+          const fileURL = URL.createObjectURL(blob);
+          window.open(fileURL, '_blank');
+        })
+        .catch(err => alert("Error al generar el PDF: " + err));
     }
 
     function openQRModal() {
