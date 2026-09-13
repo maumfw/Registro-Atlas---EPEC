@@ -6,7 +6,6 @@
   <title>Registro Power EPEC, Atlas Gens</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     .modal-bg { background-color: rgba(0, 0, 0, 0.6); }
   </style>
@@ -49,7 +48,7 @@
           👁️ Ver archivo PDF
         </button>
         <button onclick="downloadExcel()" class="bg-emerald-800 hover:bg-emerald-900 text-white px-3 py-2.5 rounded-lg font-semibold text-sm shadow">
-          📊 Descargar Excel (.xlsx)
+          📊 Descargar Excel (.csv)
         </button>
         <button onclick="openQRModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2.5 rounded-lg font-semibold text-sm shadow">
           📱 Generar QR PDF
@@ -192,8 +191,8 @@
   </div>
 
   <script>
-    // LÍNEA 196: EDITAR CON LA URL DE DESPLIEGUE DE APPS SCRIPT
-    const API_URL = "https://script.google.com/macros/s/AKfycbzLem-kF3nEO4tp-RawNCoZcsCi2p2mKc8zLi8MtGeUffiP1OumYSkLWw3CelqVawmSdg/exec";
+    // LÍNEA 196: EDITAR CON TU URL DE DESPLIEGUE DE APPS SCRIPT
+    const API_URL = "https://script.google.com/macros/s/AKfycby0HGu8efV390TyHiHk9TCauJs-QQ4KQGnH4PCZcMHzdl-WnH0TVBE4nTjv79bBVW2i_w/exec";
 
     let currentUser = "";
     let records = [];
@@ -313,6 +312,7 @@
 
     function renderTable() {
       const tbody = document.getElementById("table-body");
+      if (!tbody) return;
       tbody.innerHTML = "";
 
       records.forEach((row) => {
@@ -399,22 +399,7 @@
     }
 
     function downloadExcel() {
-      if (records.length === 0) {
-        alert("No hay registros para exportar.");
-        return;
-      }
-      const dataToExport = records.map(r => ({
-        "ID": r[0], "Fecha": formatCleanDate(r[1]), "Hora": formatCleanTime(r[2]), "Ubicación": r[3],
-        "Amperes (A)": r[4], "kW": r[5], "MW": r[6], "Usuario": r[7]
-      }));
-      const ws = XLSX.utils.json_to_sheet(dataToExport);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Registros");
-      XLSX.writeFile(wb, "Registro_Power_EPEC.xlsx");
-    }
-
-    function openPdfDirectly() {
-      fetch(`${API_URL}?action=pdf`)
+      fetch(`${API_URL}?action=excel`)
         .then(res => res.text())
         .then(base64Data => {
           const byteCharacters = atob(base64Data);
@@ -423,11 +408,40 @@
             byteNumbers[i] = byteCharacters.charCodeAt(i);
           }
           const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: 'application/pdf' });
-          const fileURL = URL.createObjectURL(blob);
-          window.open(fileURL, '_blank');
+          const blob = new Blob([byteArray], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement("a");
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", "Registro_Power_EPEC.csv");
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         })
-        .catch(err => alert("Error al generar el PDF: " + err));
+        .catch(err => alert("Error al descargar el archivo: " + err));
+    }
+
+    function openPdfDirectly() {
+      const newWin = window.open('', '_blank');
+      
+      if (newWin) {
+        newWin.document.write('<p style="font-family:sans-serif; padding:20px;">Cargando documento PDF...</p>');
+      }
+
+      fetch(`${API_URL}?action=pdf`)
+        .then(res => res.text())
+        .then(base64Data => {
+          const dataUrl = 'data:application/pdf;base64,' + base64Data;
+          
+          if (newWin) {
+            newWin.location.href = dataUrl;
+          } else {
+            window.location.href = dataUrl;
+          }
+        })
+        .catch(err => {
+          if (newWin) newWin.close();
+          alert("Error al generar el PDF: " + err);
+        });
     }
 
     function openQRModal() {
