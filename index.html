@@ -191,8 +191,8 @@
   </div>
 
   <script>
-    // EDITAR CON TU URL DE DESPLIEGUE DE APPS SCRIPT
-    const API_URL = "https://script.google.com/macros/s/AKfycbxqvOy4DO1jYHIzDe5r6WCxRFuCCkf5WZgX5zp5L7Eukmhor3_mx3FKA898Ei6ZsP1hVw/exec";
+    // REEMPLAZAR CON TU URL DE DESPLIEGUE DE APPS SCRIPT
+    const API_URL = "https://script.google.com/macros/s/AKfycbxLyVf8rvDXOBbOBb5h-kn3iprGaJrSZYXDnTYA8rCLaD-8GnR2a_F-PfF0NvC31Fdm/exec";
 
     let currentUser = "";
     let records = [];
@@ -421,37 +421,7 @@
     }
 
     function openPdfDirectly() {
-      // 1. Abrir ventana inmediatamente en el toque del usuario para evitar bloqueos
-      const newWin = window.open('', '_blank');
-      if (newWin) {
-        newWin.document.write('<p style="font-family:sans-serif; padding:20px;">Generando documento PDF, por favor espere...</p>');
-      }
-
-      fetch(`${API_URL}?action=pdf`)
-        .then(res => res.text())
-        .then(base64Data => {
-          // Convertir la respuesta Base64 a Blob
-          const byteCharacters = atob(base64Data);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: 'application/pdf' });
-          const blobUrl = URL.createObjectURL(blob);
-
-          if (newWin) {
-            // Abrir el blob en la ventana previamente creada
-            newWin.location.href = blobUrl;
-          } else {
-            // Si el navegador bloqueó la ventana emergente, redirigir en la pestaña actual
-            window.location.href = blobUrl;
-          }
-        })
-        .catch(err => {
-          if (newWin) newWin.close();
-          alert("Error al generar el PDF: " + err);
-        });
+      window.open(`${API_URL}?action=pdf`, '_blank');
     }
 
     function openQRModal() {
