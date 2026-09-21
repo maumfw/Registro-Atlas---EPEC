@@ -530,7 +530,6 @@
       return doc;
     }
 
-    // CORRECCIÓN 2: Renderizado amigable con móviles para evitar iFrames en blanco en iOS
     function renderPDFStandalone() {
       const doc = generatePDFDocument();
       const blob = doc.output('blob');
@@ -538,28 +537,23 @@
       window.location.replace(url);
     }
 
-    // CORRECCIÓN 3 MODIFICADA: Evitar el doble clic y sortear el bloqueador de Safari
     function exportPDFDirectly() {
       try {
-        // 1. ABRIMOS LA PESTAÑA DE INMEDIATO EN CUANTO EL USUARIO HACE CLIC.
-        // Esto es clave para Safari. Si tardas un milisegundo en abrirla (ej: por un fetch), la bloquea.
         const newWindow = window.open('', '_blank');
         
-        // 2. Si ya hay datos descargados previamente...
         if (records && records.length > 0) {
           const doc = generatePDFDocument();
           const blob = doc.output('blob');
           const url = URL.createObjectURL(blob);
           
           if (newWindow) {
-            newWindow.location.href = url; // Inyecta el PDF en la pestaña que ya abrimos
+            newWindow.location.href = url;
           } else {
-            window.location.assign(url); // Respaldo por si falló la nueva pestaña
+            window.location.assign(url);
           }
           return;
         }
 
-        // 3. Si NO hay datos, ponemos la pestaña en modo "cargando"...
         if (newWindow) {
           newWindow.document.write(`
             <div style="display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif; text-align:center; flex-direction:column; background-color:#f8fafc;">
@@ -569,19 +563,16 @@
           `);
         }
 
-        // ...y luego vamos a pedir los datos a Google Apps Script
         fetch(`${API_URL}?action=read`)
           .then(res => res.json())
           .then(data => {
             records = data || [];
-            renderTable(); // Aprovechamos para pintar la tabla
+            renderTable();
             
-            // Generamos el PDF con los datos recién traídos
             const doc = generatePDFDocument();
             const blob = doc.output('blob');
             const url = URL.createObjectURL(blob);
             
-            // Mandamos el PDF a la pestaña "cargando" para que la reemplace
             if (newWindow && !newWindow.closed) {
               newWindow.location.href = url;
             } else {
@@ -645,7 +636,10 @@
       listContainer.innerHTML = "";
 
       if(records) {
-        records.forEach((row) => {
+        // MODIFICACIÓN APLICADA: Invertimos los registros para ver los últimos introducidos primero
+        const calcRecords = [...records].reverse();
+
+        calcRecords.forEach((row) => {
           const itemDiv = document.createElement("label");
           itemDiv.className = "flex items-start gap-3 p-2.5 bg-white rounded-lg border shadow-sm cursor-pointer hover:bg-blue-50 transition-all";
           itemDiv.innerHTML = `
