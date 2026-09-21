@@ -538,25 +538,65 @@
       window.location.replace(url);
     }
 
-    // CORRECCIÓN 3: Evitar aperturas de pestañas asíncronas bloqueadas por el navegador
+    // CORRECCIÓN 3 MODIFICADA: Evitar el doble clic y sortear el bloqueador de Safari
     function exportPDFDirectly() {
       try {
-        if (!records || records.length === 0) {
-          alert("Sincronizando los datos... por favor, presiona el botón nuevamente en unos segundos.");
-          loadDataFromCloud();
+        // 1. ABRIMOS LA PESTAÑA DE INMEDIATO EN CUANTO EL USUARIO HACE CLIC.
+        // Esto es clave para Safari. Si tardas un milisegundo en abrirla (ej: por un fetch), la bloquea.
+        const newWindow = window.open('', '_blank');
+        
+        // 2. Si ya hay datos descargados previamente...
+        if (records && records.length > 0) {
+          const doc = generatePDFDocument();
+          const blob = doc.output('blob');
+          const url = URL.createObjectURL(blob);
+          
+          if (newWindow) {
+            newWindow.location.href = url; // Inyecta el PDF en la pestaña que ya abrimos
+          } else {
+            window.location.assign(url); // Respaldo por si falló la nueva pestaña
+          }
           return;
-        } 
-        
-        const doc = generatePDFDocument();
-        const blob = doc.output('blob');
-        const url = URL.createObjectURL(blob);
-        
-        // Intenta abrir en pestaña nueva; si el navegador (como Safari) lo bloquea, abre en la misma
-        const newWindow = window.open(url, '_blank');
-        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-          window.location.assign(url);
         }
-        
+
+        // 3. Si NO hay datos, ponemos la pestaña en modo "cargando"...
+        if (newWindow) {
+          newWindow.document.write(`
+            <div style="display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif; text-align:center; flex-direction:column; background-color:#f8fafc;">
+              <h2 style="color:#1e3a8a; font-size: 24px; margin-bottom: 10px;">Sincronizando datos...</h2>
+              <p style="color:#64748b;">Generando el reporte PDF, por favor espera un momento.</p>
+            </div>
+          `);
+        }
+
+        // ...y luego vamos a pedir los datos a Google Apps Script
+        fetch(`${API_URL}?action=read`)
+          .then(res => res.json())
+          .then(data => {
+            records = data || [];
+            renderTable(); // Aprovechamos para pintar la tabla
+            
+            // Generamos el PDF con los datos recién traídos
+            const doc = generatePDFDocument();
+            const blob = doc.output('blob');
+            const url = URL.createObjectURL(blob);
+            
+            // Mandamos el PDF a la pestaña "cargando" para que la reemplace
+            if (newWindow && !newWindow.closed) {
+              newWindow.location.href = url;
+            } else {
+              window.location.assign(url);
+            }
+          })
+          .catch(err => {
+            console.error("Error sincronizando datos: ", err);
+            if (newWindow && !newWindow.closed) {
+              newWindow.document.body.innerHTML = "<h3 style='color:red; text-align:center; margin-top:20%; font-family:sans-serif;'>Error al descargar los datos. Por favor, cierra esta pestaña e intenta de nuevo.</h3>";
+            } else {
+              alert("Error al cargar los datos para el PDF.");
+            }
+          });
+          
       } catch(e) {
         console.error("Error general exportando PDF: ", e);
         alert("Sucedió un error al generar el PDF. Revisa la consola.");
