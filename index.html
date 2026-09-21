@@ -6,8 +6,12 @@
   <title>Registro Power EPEC, Atlas Gens</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <!-- CORRECCIÓN 1: Importación de jsPDF y vinculación manual para AutoTable -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>window.jsPDF = window.jspdf.jsPDF;</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  
   <style>
     .modal-bg { background-color: rgba(0, 0, 0, 0.6); }
   </style>
@@ -199,10 +203,7 @@
   </div>
 
   <script>
-    // IMPORTANTE: Deja tu URL de Google Apps Script original aquí
     const API_URL = "https://script.google.com/macros/s/AKfycbzTqudA9Am2t5Ouq7T5o4Fksy5A_Yq_Wdb_7Vl_pLDaE68UJXX8kzRvS9nlIHLUTPwZcg/exec";
-    
-    // PIN PARA INGRESO AL SISTEMA
     const ACCESS_PIN = "2026"; 
 
     let currentUser = "";
@@ -212,13 +213,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       
       if (urlParams.get('action') === 'pdf') {
-        history.pushState(null, null, location.href);
-        window.onpopstate = function () {
-          history.go(1);
-        };
-
         document.getElementById("screen-welcome").classList.add("hidden");
-
         fetch(`${API_URL}?action=read`)
           .then(res => res.json())
           .then(data => {
@@ -283,7 +278,6 @@
       }
     }
 
-    // Funciones de formateo seguras
     function formatCleanDate(str) {
       if (!str) return "";
       try {
@@ -312,7 +306,6 @@
       }
     }
 
-    // Parseo de fechas seguro para la ordenación del PDF
     function parseDateSafe(dateStr, timeStr) {
       if (!dateStr) return new Date(0);
       let d = new Date(dateStr + ' ' + (timeStr || ''));
@@ -381,7 +374,6 @@
 
       if(!records || records.length === 0) return;
 
-      // Muestra el último registro introducido hasta arriba
       const tableRecords = [...records].reverse();
       
       tableRecords.forEach((row) => {
@@ -425,14 +417,12 @@
     }
 
     function generatePDFDocument() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+      const doc = new window.jsPDF();
       
       try {
         const monthsMap = {};
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-        // Filtrar vacíos y ordenar de más reciente a más antiguo de forma robusta
         const validRecords = (records || []).filter(r => r && r.length > 1);
         const sortedRecords = [...validRecords].sort((a, b) => {
           return parseDateSafe(b[1], b[2]) - parseDateSafe(a[1], a[2]);
@@ -458,7 +448,6 @@
         const keys = Object.keys(monthsMap);
 
         if (keys.length === 0) {
-          // Portada por defecto si no hay registros válidos
           const now = new Date();
           const currentMonthName = monthNames[now.getMonth()];
           const currentYear = now.getFullYear();
@@ -477,7 +466,6 @@
           return doc;
         }
 
-        // Generar páginas para cada mes/año
         keys.forEach((key, index) => {
           if (index > 0) {
             doc.addPage();
@@ -485,7 +473,6 @@
 
           const [monthStr, yearStr] = key.split(" ");
 
-          // --- PÁGINA DE PORTADA DEL MES ---
           doc.setFontSize(24);
           doc.setTextColor(15, 23, 42);
           doc.text("Registro Power EPEC, Atlas Gens", 105, 50, { align: "center" });
@@ -497,7 +484,7 @@
           doc.setLineWidth(0.5);
           doc.setLineDash([2, 2], 0);
           doc.line(40, 80, 170, 80);
-          doc.setLineDash([]); // reset
+          doc.setLineDash([]); 
 
           doc.setFontSize(13);
           doc.setTextColor(51, 65, 85);
@@ -508,7 +495,6 @@
           doc.setFontSize(11);
           doc.text("9220 Socorro Logistics Ln, Socorro, TX 79927, United States", 105, 110, { align: "center" });
 
-          // --- PÁGINA(S) DE TABLA PARA ESTE MES ---
           doc.addPage();
 
           doc.setFontSize(14);
@@ -538,58 +524,39 @@
         console.error("Error al generar PDF:", error);
         doc.setFontSize(12);
         doc.setTextColor(200, 0, 0);
-        doc.text("Ocurrió un error al procesar los datos para el PDF.", 14, 20);
+        doc.text("Ocurrió un error interno al procesar la tabla.", 14, 20);
       }
 
       return doc;
     }
 
+    // CORRECCIÓN 2: Renderizado amigable con móviles para evitar iFrames en blanco en iOS
     function renderPDFStandalone() {
       const doc = generatePDFDocument();
-      const pdfDataUri = doc.output('datauristring');
-      
-      document.open();
-      document.write(`
-        <!DOCTYPE html>
-        <html lang="es">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Reporte PDF - Registro Power EPEC</title>
-          </head>
-          <body style="margin:0; padding:0; overflow:hidden; background-color:#525659;">
-            <iframe width="100%" height="100%" style="border:none; position:fixed; top:0; left:0; bottom:0; right:0;" src="${pdfDataUri}"></iframe>
-            <script>
-              history.pushState(null, null, location.href);
-              window.onpopstate = function () {
-                history.go(1);
-              };
-            <\/script>
-          </body>
-        </html>
-      `);
-      document.close();
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.location.replace(url);
     }
 
+    // CORRECCIÓN 3: Evitar aperturas de pestañas asíncronas bloqueadas por el navegador
     function exportPDFDirectly() {
       try {
         if (!records || records.length === 0) {
-          fetch(`${API_URL}?action=read`)
-            .then(res => res.json())
-            .then(data => {
-              records = data || [];
-              const doc = generatePDFDocument();
-              window.open(doc.output('bloburl'), '_blank');
-            })
-            .catch(err => {
-              alert("Error conectando con los datos. Mostrando portada por defecto.");
-              const doc = generatePDFDocument();
-              window.open(doc.output('bloburl'), '_blank');
-            });
-        } else {
-          const doc = generatePDFDocument();
-          window.open(doc.output('bloburl'), '_blank');
+          alert("Sincronizando los datos... por favor, presiona el botón nuevamente en unos segundos.");
+          loadDataFromCloud();
+          return;
+        } 
+        
+        const doc = generatePDFDocument();
+        const blob = doc.output('blob');
+        const url = URL.createObjectURL(blob);
+        
+        // Intenta abrir en pestaña nueva; si el navegador (como Safari) lo bloquea, abre en la misma
+        const newWindow = window.open(url, '_blank');
+        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+          window.location.assign(url);
         }
+        
       } catch(e) {
         console.error("Error general exportando PDF: ", e);
         alert("Sucedió un error al generar el PDF. Revisa la consola.");
