@@ -28,19 +28,18 @@
         <label class="block text-sm font-semibold text-slate-700 mb-2">Seleccione su Nombre de Usuario:</label>
         <select id="user-select" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-slate-50">
           <option value="">-- Seleccione un usuario --</option>
-          <option value="Adrián">Adrián</option>
           <option value="Ángel">Ángel</option>
           <option value="Armando">Armando</option>
           <option value="Cristian">Cristian</option>
           <option value="Daniel">Daniel</option>
           <option value="Eric">Eric</option>
+          <option value="Eric M">Eric M</option>
           <option value="Francisco">Francisco</option>
           <option value="Javier">Javier</option>
           <option value="Jesús">Jesús</option>
           <option value="José">José</option>
           <option value="Koby">Koby</option>
           <option value="Mauro">Mauro</option>
-          <option value="Miguel">Miguel</option>
           <option value="Ramiro">Ramiro</option>
         </select>
       </div>
@@ -96,6 +95,16 @@
               <option value="Atlas Gens">Atlas Gens</option>
               <option value="B1">B1</option>
               <option value="B8">B8</option>
+              <option value="BAY 11&12">BAY 11&12</option>
+              <option value="BAY 9&10">BAY 9&10</option>
+              <option value="BAY 1A">BAY 1A</option>
+              <option value="BAY 1B">BAY 1B</option>
+              <option value="BAY 2A">BAY 2A</option>
+              <option value="BAY 2B">BAY 2B</option>
+              <option value="BAY 3A">BAY 3A</option>
+              <option value="BAY 3B">BAY 3B</option>
+              <option value="BAY 4A">BAY 4A</option>
+              <option value="BAY 4B">BAY 4B</option>
               <option value="BAY5&6">BAY5&6</option>
               <option value="BAY7&8">BAY7&8</option>
               <option value="FLUTEC">FLUTEC</option>
@@ -103,6 +112,8 @@
               <option value="MSB">MSB</option>
               <option value="MSC">MSC</option>
               <option value="MSD">MSD</option>
+              <option value="MSM4">MSM4</option>
+              <option value="MSM5">MSM5</option>
               <option value="MST1">MST1</option>
               <option value="MST2">MST2</option>
             </select>
@@ -347,7 +358,6 @@
         usuario: currentUser
       };
 
-      // PROTECCIÓN CONTRA DOBLE CLIC: Desactivar botón y cambiar estado visual
       const btnSave = document.getElementById("btn-save");
       btnSave.disabled = true;
       btnSave.innerText = "Guardando...";
@@ -361,7 +371,6 @@
       }).then(() => {
         document.getElementById("amperes-input").value = "";
         
-        // Restaurar botón después de guardar
         setTimeout(() => {
           btnSave.disabled = false;
           btnSave.innerText = "Guardar Medición";
@@ -370,7 +379,6 @@
         }, 1000);
       }).catch(err => {
         console.error("Error al guardar:", err);
-        // Restaurar botón en caso de error
         btnSave.disabled = false;
         btnSave.innerText = "Guardar Medición";
         btnSave.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition-all shadow";
